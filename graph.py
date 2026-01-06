@@ -27,3 +27,8 @@ def graph_get(endpoint: str):
     r = requests.get(f"{GRAPH_BASE}/{endpoint}", headers=headers, timeout=15)
     r.raise_for_status()
     return r.json()
+
+
+
+def buscar_sites_por_nombre(nombre: str):
+    return graph_get(f"sites?search={nombre}")
