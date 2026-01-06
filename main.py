@@ -115,3 +115,16 @@ def quickbooks_webhook(payload: dict):
     """
     print("Webhook QuickBooks recibido:", payload)
     return {"ok": True}
+
+
+from agent import ejecutar_agente
+
+class AgenteRequest(BaseModel):
+    mensaje: str
+
+
+@app.post("/agente")
+def agente(req: AgenteRequest):
+    respuesta = ejecutar_agente(req.mensaje)
+    return {"respuesta": respuesta}
+
