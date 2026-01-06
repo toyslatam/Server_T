@@ -1,12 +1,18 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from mcp_tools import listar_listas, leer_items, resumen_lista
+
+from mcp_tools import (
+    buscar_site_por_nombre,
+    listar_listas,
+    buscar_lista_por_nombre,
+    leer_items
+)
 
 app = FastAPI(title="MCP SharePoint Server")
 
-# -------------------------
-# MODELOS
-# -------------------------
+# =====================================================
+# MODELOS (REQUEST SCHEMAS)
+# =====================================================
 
 class ListaRequest(BaseModel):
     site_id: str
@@ -18,49 +24,94 @@ class ItemsRequest(BaseModel):
     top: int | None = 50
 
 
-# -------------------------
-# HEALTH (Render)
-# -------------------------
+class BuscarSiteRequest(BaseModel):
+    nombre: str
+
+
+class BuscarListaRequest(BaseModel):
+    site_id: str
+    nombre: str
+
+
+# =====================================================
+# HEALTH CHECK (Render)
+# =====================================================
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
 
-# -------------------------
-# MCP TOOLS
-# -------------------------
+# =====================================================
+# MCP — SITES
+# =====================================================
+
+@app.post("/mcp/sites/buscar")
+def mcp_buscar_site(req: BuscarSiteRequest):
+    """
+    Busca sites de SharePoint por nombre
+    """
+    try:
+        return buscar_site_por_nombre(req.nombre)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =====================================================
+# MCP — LISTAS
+# =====================================================
 
 @app.post("/mcp/listas")
 def mcp_listas(req: ListaRequest):
+    """
+    Lista todas las listas de un site
+    """
     try:
         return listar_listas(req.site_id)
     except Exception as e:
-        raise HTTPException(500, str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.post("/mcp/listas/buscar")
+def mcp_buscar_lista(req: BuscarListaRequest):
+    """
+    Busca una lista por nombre dentro de un site
+    """
+    try:
+        lista = buscar_lista_por_nombre(req.site_id, req.nombre)
+        if not lista:
+            raise HTTPException(
+                status_code=404,
+                detail="Lista no encontrada"
+            )
+        return lista
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =====================================================
+# MCP — ITEMS
+# =====================================================
 
 @app.post("/mcp/items")
 def mcp_items(req: ItemsRequest):
+    """
+    Obtiene items de una lista
+    """
     try:
         return leer_items(req.site_id, req.list_id, req.top)
     except Exception as e:
-        raise HTTPException(500, str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/mcp/resumen")
-def mcp_resumen(req: ItemsRequest):
-    try:
-        return resumen_lista(req.site_id, req.list_id)
-    except Exception as e:
-        raise HTTPException(500, str(e))
-
-
-# -------------------------
-# WEBHOOK EJEMPLO
-# -------------------------
+# =====================================================
+# WEBHOOKS
+# =====================================================
 
 @app.post("/webhook/quickbooks")
 def quickbooks_webhook(payload: dict):
-    # aquí procesas eventos
-    print("Webhook recibido:", payload)
+    """
+    Webhook ejemplo QuickBooks
+    """
+    print("Webhook QuickBooks recibido:", payload)
     return {"ok": True}
