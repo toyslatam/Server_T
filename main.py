@@ -123,8 +123,10 @@ class AgenteRequest(BaseModel):
     mensaje: str
 
 
-@app.post("/agente")
-def agente(req: AgenteRequest):
-    respuesta = ejecutar_agente(req.mensaje)
-    return {"respuesta": respuesta}
+@app.get("/agente")
+def agente_get():
+    return {
+        "status": "OK",
+        "mensaje": "El agente está vivo 🚀"
+    }
 
