@@ -1,20 +1,3 @@
-import os
-import requests
-from openai import OpenAI
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-MCP_BASE = "https://mcp-tagore.onrender.com"
-
-SYSTEM_PROMPT = """
-Eres Argo, un asistente experto en SharePoint.
-
-Reglas:
-- Nunca pidas IDs al usuario.
-- Si necesitas datos reales, usa las herramientas MCP.
-- Explica siempre de forma clara.
-"""
-
 def ejecutar_agente(mensaje_usuario: str):
 
     mensajes = [
@@ -80,8 +63,10 @@ def ejecutar_agente(mensaje_usuario: str):
 
         mensaje = response.choices[0].message
 
-        # 👉 Si el modelo pide usar una tool
+        # 👉 CASO 1: el modelo pide usar tools
         if mensaje.tool_calls:
+            mensajes.append(mensaje)  # MUY IMPORTANTE
+
             for llamada in mensaje.tool_calls:
                 nombre = llamada.function.name
                 argumentos = eval(llamada.function.arguments)
@@ -104,11 +89,15 @@ def ejecutar_agente(mensaje_usuario: str):
                         json=argumentos
                     ).json()
 
+                else:
+                    resultado = {}
+
                 mensajes.append({
                     "role": "tool",
                     "tool_call_id": llamada.id,
                     "content": str(resultado)
                 })
+
+        # 👉 CASO 2: respuesta final (NO tools)
         else:
-            # 👉 Respuesta final al usuario
             return mensaje.content
