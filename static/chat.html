@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Argo – Depto Regulatorio</title>
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; }
+    .user { font-weight: bold; }
+    .bot { margin-bottom: 10px; color: #0066cc; }
+  </style>
+</head>
+<body>
+
+<h3>Argo – Asistente</h3>
+
+<div id="chat"></div>
+
+<input id="input" style="width:80%" placeholder="Escribe tu mensaje..." />
+<button onclick="enviar()">Enviar</button>
+
+<script>
+async function enviar() {
+  const input = document.getElementById("input");
+  const chat = document.getElementById("chat");
+
+  const mensaje = input.value;
+  if (!mensaje) return;
+
+  chat.innerHTML += `<div class="user">Tú: ${mensaje}</div>`;
+  input.value = "";
+
+  const res = await fetch("/agente", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mensaje })
+  });
+
+  const data = await res.json();
+  chat.innerHTML += `<div class="bot">Argo: ${data.respuesta}</div>`;
+  chat.scrollTop = chat.scrollHeight;
+}
+</script>
+
+</body>
+</html>
