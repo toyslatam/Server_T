@@ -1,3 +1,5 @@
+from fastapi.staticfiles import StaticFiles
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
@@ -9,6 +11,9 @@ from mcp_tools import (
 )
 
 app = FastAPI(title="MCP SharePoint Server")
+
+app.mount("/ui", StaticFiles(directory="static", html=True), name="ui")
+
 
 # =====================================================
 # MODELOS (REQUEST SCHEMAS)
