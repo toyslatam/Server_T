@@ -154,8 +154,8 @@ def generar_informe_excel():
     Genera informe Excel Top 50 de registros sanitarios
     """
 
-    SITE_ID = "TU_SITE_ID"
-    LIST_ID = "TU_LIST_ID"
+    SITE_ID = "5e65fbe9-8adb-408a-95b4-b60f30be1896,09c9fdc9-750f-44cc-9e00-1d98779eca3d"
+    LIST_ID = "c0353b87-cc7a-4ccc-9e14-9d328d4d505f"
 
     datos = obtener_registros_sanitarios_top50(
         site_id=SITE_ID,
