@@ -5,29 +5,24 @@
   <title>Argo – Depto Regulatorio</title>
 
   <style>
-    body {
+    html, body {
+      height: 100%;
+      margin: 0;
       font-family: "Segoe UI", Arial, sans-serif;
       background: #f5f7fa;
-      margin: 0;
-      padding: 0;
     }
 
     .container {
-      max-width: 900px;
-      margin: 20px auto;
-      background: #ffffff;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      height: 100%;
       display: flex;
       flex-direction: column;
-      height: 90vh;
+      background: #ffffff;
     }
 
     .header {
-      padding: 15px 20px;
       background: #003366;
       color: white;
-      border-radius: 10px 10px 0 0;
+      padding: 12px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -36,6 +31,7 @@
     .header h3 {
       margin: 0;
       font-weight: 500;
+      font-size: 16px;
     }
 
     .header button {
@@ -45,7 +41,7 @@
       padding: 8px 14px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .header button:hover {
@@ -54,23 +50,22 @@
 
     #chat {
       flex: 1;
-      padding: 20px;
+      padding: 16px;
       overflow-y: auto;
       background: #f9fafc;
     }
 
     .msg {
-      margin-bottom: 12px;
-      max-width: 75%;
+      max-width: 80%;
       padding: 10px 14px;
       border-radius: 8px;
-      line-height: 1.4;
+      margin-bottom: 10px;
       font-size: 14px;
+      line-height: 1.4;
     }
 
     .user {
       background: #dfe6fd;
-      align-self: flex-end;
       margin-left: auto;
     }
 
@@ -80,10 +75,11 @@
     }
 
     .footer {
-      padding: 12px;
+      padding: 10px;
       display: flex;
       gap: 10px;
       border-top: 1px solid #ddd;
+      background: #ffffff;
     }
 
     .footer input {
@@ -98,7 +94,7 @@
       background: #003366;
       color: white;
       border: none;
-      padding: 10px 18px;
+      padding: 10px 16px;
       border-radius: 6px;
       cursor: pointer;
       font-size: 14px;
@@ -114,5 +110,61 @@
 
 <div class="container">
 
-  <!-- HEADER -->
   <div class="header">
+    <h3>Argo – Asistente Regulatorio</h3>
+    <button onclick="descargarInforme()">📊 Descargar informe</button>
+  </div>
+
+  <div id="chat">
+    <div class="msg bot">
+      👋 Hola, soy Argo. Puedo ayudarte con registros sanitarios, vencimientos y reportes.
+    </div>
+  </div>
+
+  <div class="footer">
+    <input
+      id="input"
+      placeholder="Escribe tu mensaje…"
+      onkeydown="if(event.key==='Enter') enviar()"
+    />
+    <button onclick="enviar()">Enviar</button>
+  </div>
+
+</div>
+
+<script>
+async function enviar() {
+  const input = document.getElementById("input");
+  const chat = document.getElementById("chat");
+  const mensaje = input.value.trim();
+
+  if (!mensaje) return;
+
+  chat.innerHTML += `<div class="msg user">${mensaje}</div>`;
+  input.value = "";
+  chat.scrollTop = chat.scrollHeight;
+
+  try {
+    const res = await fetch("/agente", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mensaje })
+    });
+
+    const data = await res.json();
+
+    chat.innerHTML += `<div class="msg bot">${data.respuesta}</div>`;
+    chat.scrollTop = chat.scrollHeight;
+
+  } catch {
+    chat.innerHTML += `<div class="msg bot">⚠️ Error al conectar con el agente.</div>`;
+  }
+}
+
+function descargarInforme() {
+  window.open("/mcp/informe/registros-sanitarios", "_blank");
+}
+</script>
+
+</body>
+</html>
