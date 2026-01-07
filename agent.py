@@ -1,3 +1,33 @@
+import os
+import requests
+from openai import OpenAI
+
+# =========================
+# OPENAI CLIENT
+# =========================
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# =========================
+# CONFIG
+# =========================
+
+MCP_BASE = "https://mcp-tagore.onrender.com"
+
+SYSTEM_PROMPT = """
+Eres Argo, un asistente experto en SharePoint y gestión documental.
+
+Reglas:
+- Nunca pidas IDs (site_id, list_id, drive_id) al usuario.
+- Descubre automáticamente sites, listas y bibliotecas usando las tools MCP.
+- Usa tools solo cuando necesites datos reales.
+- Responde de forma clara y profesional.
+"""
+
+# =========================
+# AGENTE
+# =========================
+
 def ejecutar_agente(mensaje_usuario: str):
 
     mensajes = [
@@ -63,7 +93,7 @@ def ejecutar_agente(mensaje_usuario: str):
 
         mensaje = response.choices[0].message
 
-        # 👉 CASO 1: el modelo pide usar tools
+        # 🔁 CASO: el modelo pide usar tools
         if mensaje.tool_calls:
             mensajes.append(mensaje)  # MUY IMPORTANTE
 
@@ -98,6 +128,6 @@ def ejecutar_agente(mensaje_usuario: str):
                     "content": str(resultado)
                 })
 
-        # 👉 CASO 2: respuesta final (NO tools)
+        # ✅ RESPUESTA FINAL
         else:
             return mensaje.content
