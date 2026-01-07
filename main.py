@@ -15,6 +15,10 @@ from mcp_tools import (
 
 from agent import ejecutar_agente
 
+from fastapi.responses import FileResponse
+from excel_utils import generar_excel_registros
+from mcp_tools import obtener_registros_sanitarios_top50
+
 # =========================
 # APP
 # =========================
@@ -142,3 +146,26 @@ app.mount(
     StaticFiles(directory="static", html=True),
     name="ui"
 )
+
+
+@app.post("/mcp/informe/registros-sanitarios")
+def generar_informe_excel():
+    """
+    Genera informe Excel Top 50 de registros sanitarios
+    """
+
+    SITE_ID = "TU_SITE_ID"
+    LIST_ID = "TU_LIST_ID"
+
+    datos = obtener_registros_sanitarios_top50(
+        site_id=SITE_ID,
+        list_id=LIST_ID
+    )
+
+    archivo = generar_excel_registros(datos)
+
+    return FileResponse(
+        archivo,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename="Informe_Registros_Sanitarios_Top50.xlsx"
+    )
