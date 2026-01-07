@@ -148,7 +148,7 @@ app.mount(
 )
 
 
-@app.post("/mcp/informe/registros-sanitarios")
+@app.get("/mcp/informe/registros-sanitarios")
 def generar_informe_excel():
     """
     Genera informe Excel Top 50 de registros sanitarios
