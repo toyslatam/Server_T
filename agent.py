@@ -6,13 +6,11 @@ from openai import OpenAI
 # =========================
 # OPENAI CLIENT
 # =========================
-
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # =========================
 # CONFIG
 # =========================
-
 MCP_BASE = "https://mcp-tagore.onrender.com"
 
 SYSTEM_PROMPT = """
@@ -33,7 +31,6 @@ Reglas:
 # =========================
 # AGENTE
 # =========================
-
 def ejecutar_agente(mensaje_usuario: str):
 
     mensajes = [
@@ -64,41 +61,40 @@ def ejecutar_agente(mensaje_usuario: str):
         )
 
         mensaje = response.choices[0].message
-# =========================
-# TOOL CALLS
-# =========================
-if mensaje.tool_calls:
-    mensajes.append(mensaje)
 
-    for llamada in mensaje.tool_calls:
+        # =========================
+        # TOOL CALLS
+        # =========================
+        if mensaje.tool_calls:
+            mensajes.append(mensaje)
 
-        if llamada.function.name == "consultar_registros_regulatorios":
-            print("🔥 Ejecutando tool: consultar_registros_regulatorios")
+            for llamada in mensaje.tool_calls:
+                if llamada.function.name == "consultar_registros_regulatorios":
+                    print("🔥 Ejecutando tool: consultar_registros_regulatorios")
 
-            response_api = requests.get(
-                f"{MCP_BASE}/mcp/informe/registros-sanitarios"
-            )
+                    response_api = requests.get(
+                        f"{MCP_BASE}/mcp/informe/registros-sanitarios"
+                    )
 
-            try:
-                data = response_api.json()
-            except Exception:
-                data = {
-                    "status": "ok",
-                    "mensaje": "Informe generado correctamente"
-                }
+                    try:
+                        data = response_api.json()
+                    except Exception:
+                        data = {
+                            "status": "ok",
+                            "mensaje": "Informe generado correctamente"
+                        }
 
-            mensajes.append({
-                "role": "tool",
-                "tool_call_id": llamada.id,
-                "content": json.dumps({
-                    "fuente": "SharePoint",
-                    "resultado": data
-                })
-            })
+                    mensajes.append({
+                        "role": "tool",
+                        "tool_call_id": llamada.id,
+                        "content": json.dumps({
+                            "fuente": "SharePoint",
+                            "resultado": data
+                        })
+                    })
 
-# =========================
-# RESPUESTA FINAL
-# =========================
-else:
-    return mensaje.content
-
+        # =========================
+        # RESPUESTA FINAL
+        # =========================
+        else:
+            return mensaje.content
