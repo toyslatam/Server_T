@@ -38,7 +38,7 @@ def ejecutar_agente(mensaje_usuario: str):
     ]
 
     tools = [
-        # 🔥 TOOL DE ALTO NIVEL (LA QUE LLAMA AGENT BUILDER)
+       
         {
             "type": "function",
             "function": {
@@ -123,7 +123,7 @@ def ejecutar_agente(mensaje_usuario: str):
 
             for llamada in mensaje.tool_calls:
                 nombre = llamada.function.name
-                argumentos = json.loads(llamada.function.arguments)
+                argumentos = json.loads(llamada.function.arguments or "{}")
 
                 # 🔥 TOOL PRINCIPAL (REGULATORIO)
                 if nombre == "consultar_registros_regulatorios":
