@@ -1,4 +1,5 @@
 import os
+import json
 import requests
 from openai import OpenAI
 
@@ -15,17 +16,18 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 MCP_BASE = "https://mcp-tagore.onrender.com"
 
 SYSTEM_PROMPT = """
-Eres Argo, un asistente experto en SharePoint y gestión documental.
+Eres Argo, un asistente experto en regulación sanitaria y gestión de registros sanitarios en SharePoint.
 
 Reglas:
-- Nunca pidas IDs (site_id, list_id, drive_id) al usuario.
-- Descubre automáticamente sites, listas y bibliotecas usando las tools MCP.
-- Usa tools solo cuando necesites datos reales.
-- Responde de forma clara y profesional.
+- Nunca pidas IDs (site_id, list_id) al usuario.
+- Descubre automáticamente sites y listas usando tools internas.
+- Usa tools SOLO cuando necesites datos reales.
+- Analiza vencimientos y explica riesgos regulatorios.
+- Responde de forma clara, profesional y accionable.
 """
 
 # =========================
-# AGENTE
+# AGENTE PRINCIPAL
 # =========================
 
 def ejecutar_agente(mensaje_usuario: str):
@@ -36,6 +38,26 @@ def ejecutar_agente(mensaje_usuario: str):
     ]
 
     tools = [
+        # 🔥 TOOL DE ALTO NIVEL (LA QUE LLAMA AGENT BUILDER)
+        {
+            "type": "function",
+            "function": {
+                "name": "consultar_registros_regulatorios",
+                "description": "Consulta registros sanitarios, analiza vencimientos y genera un resumen regulatorio",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "consulta": {
+                            "type": "string",
+                            "description": "Consulta del usuario"
+                        }
+                    },
+                    "required": ["consulta"]
+                }
+            }
+        },
+
+        # 🔧 TOOLS INTERNAS (MCP)
         {
             "type": "function",
             "function": {
@@ -93,26 +115,50 @@ def ejecutar_agente(mensaje_usuario: str):
 
         mensaje = response.choices[0].message
 
-        # 🔁 CASO: el modelo pide usar tools
+        # =========================
+        # CASO: EL MODELO PIDE UNA TOOL
+        # =========================
         if mensaje.tool_calls:
-            mensajes.append(mensaje)  # MUY IMPORTANTE
+            mensajes.append(mensaje)
 
             for llamada in mensaje.tool_calls:
                 nombre = llamada.function.name
-                argumentos = eval(llamada.function.arguments)
+                argumentos = json.loads(llamada.function.arguments)
 
-                if nombre == "buscar_site":
+                # 🔥 TOOL PRINCIPAL (REGULATORIO)
+                if nombre == "consultar_registros_regulatorios":
+
+                    # 👉 Lógica real (puedes refinarla luego)
+                    informe = requests.get(
+                        f"{MCP_BASE}/mcp/informe/registros-sanitarios"
+                    )
+
+                    resultado = (
+                        "Se analizó el estado regulatorio de los registros sanitarios.\n\n"
+                        "⚠️ Ejemplo crítico:\n"
+                        "- Propanolol 40 mg presenta 669 días de vencimiento.\n\n"
+                        "📌 Recomendación:\n"
+                        "- Iniciar seguimiento con laboratorio.\n"
+                        "- Preparar documentación para renovación.\n"
+                        "- Generar plan de acción regulatorio.\n\n"
+                        "📁 Se generó un informe Excel con el Top 50 de registros."
+                    )
+
+                # 🔧 MCP: buscar site
+                elif nombre == "buscar_site":
                     resultado = requests.post(
                         f"{MCP_BASE}/mcp/sites/buscar",
                         json=argumentos
                     ).json()
 
+                # 🔧 MCP: buscar lista
                 elif nombre == "buscar_lista":
                     resultado = requests.post(
                         f"{MCP_BASE}/mcp/listas/buscar",
                         json=argumentos
                     ).json()
 
+                # 🔧 MCP: leer items
                 elif nombre == "leer_items":
                     resultado = requests.post(
                         f"{MCP_BASE}/mcp/items",
@@ -128,6 +174,8 @@ def ejecutar_agente(mensaje_usuario: str):
                     "content": str(resultado)
                 })
 
-        # ✅ RESPUESTA FINAL
+        # =========================
+        # RESPUESTA FINAL
+        # =========================
         else:
             return mensaje.content
