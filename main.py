@@ -75,6 +75,10 @@ class BuscarListaRequest(BaseModel):
 class AgenteRequest(BaseModel):
     mensaje: str
 
+class ChatKitMessage(BaseModel):
+    session_id: str
+    message: str
+
 
 # =========================
 # HEALTH CHECK
@@ -220,6 +224,19 @@ def crear_sesion_chatkit():
         "client_secret": session.client_secret,
         "session_id": session.id
     }
+
+@app.post("/api/chatkit/message")
+def enviar_mensaje_chatkit(data: ChatKitMessage):
+    """
+    Envía un mensaje al Agent Builder vía ChatKit
+    (PASO 5)
+    """
+    response = client.chatkit.sessions.messages.create(
+        session_id=data.session_id,
+        message=data.message
+    )
+
+    return response
 
 
 
