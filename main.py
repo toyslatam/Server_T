@@ -19,6 +19,11 @@ from mcp_tools import (
 from agent import ejecutar_agente
 from excel_utils import generar_excel_registros
 
+import os
+from openai import OpenAI
+
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
 # =========================
 # APP (MCP READY)
 # =========================
@@ -200,3 +205,22 @@ app.mount(
     StaticFiles(directory="static", html=True),
     name="ui"
 )
+
+#CHAT KIT -----
+@app.post("/api/chatkit/session")
+def crear_sesion_chatkit():
+    """
+    Crea una sesión ChatKit entre el navegador y Agent Builder
+    """
+    session = client.chatkit.sessions.create(
+        workflow_id=os.environ["AGENT_WORKFLOW_ID"]
+    )
+
+    return {
+        "client_secret": session.client_secret,
+        "session_id": session.id
+    }
+
+
+
+
