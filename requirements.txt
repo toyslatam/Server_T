@@ -3,6 +3,7 @@ uvicorn
 requests
 python-dotenv
 pydantic
-openai
+
 pandas
 openpyxl
+openai>=1.40.0
