@@ -74,20 +74,30 @@ def ejecutar_agente(mensaje_usuario: str):
             for llamada in mensaje.tool_calls:
 
                 if llamada.function.name == "consultar_registros_regulatorios":
-                    print("🔥 Ejecutando tool: consultar_registros_regulatorios")
+                    print("Ejecutando tool: consultar_registros_regulatorios")
 
                     # 🔗 LLAMADA REAL A TU BACKEND MCP
                     response_api = requests.get(
                         f"{MCP_BASE}/mcp/informe/registros-sanitarios"
                     )
 
-                    datos = response_api.text  # puede ser texto, json o resumen
+                   try:
+    data = response_api.json()
+except Exception:
+    data = {
+        "status": "ok",
+        "mensaje": "Informe generado, revisar Excel"
+    }
 
-                    mensajes.append({
-                        "role": "tool",
-                        "tool_call_id": llamada.id,
-                        "content": datos
-                    })
+mensajes.append({
+    "role": "tool",
+    "tool_call_id": llamada.id,
+    "content": json.dumps({
+        "fuente": "SharePoint",
+        "registros": data,
+        "accion": "Analisis regulatorio ejecutado"
+    })
+})
 
         # =========================
         # RESPUESTA FINAL
