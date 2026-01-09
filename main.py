@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
+from typing import Any, Dict
 
 # =========================
 # IMPORTS MCP
@@ -81,7 +82,12 @@ def health():
 # =========================
 # MCP — SITES
 # =========================
-@app.post("/mcp/sites/buscar", tags=["mcp"])
+@app.post(
+    "/mcp/sites/buscar",
+    tags=["mcp"],
+    operation_id="buscar_site",
+    response_model=Dict[str, Any]
+)
 def mcp_buscar_site(req: BuscarSiteRequest):
     try:
         return JSONResponse(content=buscar_site_por_nombre(req.nombre))
@@ -92,7 +98,12 @@ def mcp_buscar_site(req: BuscarSiteRequest):
 # =========================
 # MCP — LISTAS
 # =========================
-@app.post("/mcp/listas", tags=["mcp"])
+@app.post(
+    "/mcp/listas",
+    tags=["mcp"],
+    operation_id="listar_listas",
+    response_model=Dict[str, Any]
+)
 def mcp_listas(req: ListaRequest):
     try:
         return JSONResponse(content=listar_listas(req.site_id))
@@ -100,7 +111,12 @@ def mcp_listas(req: ListaRequest):
         raise HTTPException(500, str(e))
 
 
-@app.post("/mcp/listas/buscar", tags=["mcp"])
+@app.post(
+    "/mcp/listas/buscar",
+    tags=["mcp"],
+    operation_id="buscar_lista",
+    response_model=Dict[str, Any]
+)
 def mcp_buscar_lista(req: BuscarListaRequest):
     try:
         lista = buscar_lista_por_nombre(req.site_id, req.nombre)
@@ -114,7 +130,12 @@ def mcp_buscar_lista(req: BuscarListaRequest):
 # =========================
 # MCP — ITEMS
 # =========================
-@app.post("/mcp/items", tags=["mcp"])
+@app.post(
+    "/mcp/items",
+    tags=["mcp"],
+    operation_id="leer_items",
+    response_model=Dict[str, Any]
+)
 def mcp_items(req: ItemsRequest):
     try:
         return JSONResponse(
@@ -127,7 +148,12 @@ def mcp_items(req: ItemsRequest):
 # =========================
 # MCP — INFORME EXCEL
 # =========================
-@app.get("/mcp/informe/registros-sanitarios", tags=["mcp"])
+@app.get(
+    "/mcp/informe/registros-sanitarios",
+    tags=["mcp"],
+    operation_id="generar_informe_excel",
+    response_model=Dict[str, Any]
+)
 def generar_informe_excel():
     """
     Genera informe Excel Top 50 de registros sanitarios
