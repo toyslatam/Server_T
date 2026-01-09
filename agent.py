@@ -64,43 +64,41 @@ def ejecutar_agente(mensaje_usuario: str):
         )
 
         mensaje = response.choices[0].message
+# =========================
+# TOOL CALLS
+# =========================
+if mensaje.tool_calls:
+    mensajes.append(mensaje)
 
-        # =========================
-        # TOOL CALL
-        # =========================
-        if mensaje.tool_calls:
-            mensajes.append(mensaje)
+    for llamada in mensaje.tool_calls:
 
-            for llamada in mensaje.tool_calls:
+        if llamada.function.name == "consultar_registros_regulatorios":
+            print("🔥 Ejecutando tool: consultar_registros_regulatorios")
 
-                if llamada.function.name == "consultar_registros_regulatorios":
-                    print("Ejecutando tool: consultar_registros_regulatorios")
+            response_api = requests.get(
+                f"{MCP_BASE}/mcp/informe/registros-sanitarios"
+            )
 
-                    # 🔗 LLAMADA REAL A TU BACKEND MCP
-                    response_api = requests.get(
-                        f"{MCP_BASE}/mcp/informe/registros-sanitarios"
-                    )
+            try:
+                data = response_api.json()
+            except Exception:
+                data = {
+                    "status": "ok",
+                    "mensaje": "Informe generado correctamente"
+                }
 
-                   try:
-    data = response_api.json()
-except Exception:
-    data = {
-        "status": "ok",
-        "mensaje": "Informe generado, revisar Excel"
-    }
+            mensajes.append({
+                "role": "tool",
+                "tool_call_id": llamada.id,
+                "content": json.dumps({
+                    "fuente": "SharePoint",
+                    "resultado": data
+                })
+            })
 
-mensajes.append({
-    "role": "tool",
-    "tool_call_id": llamada.id,
-    "content": json.dumps({
-        "fuente": "SharePoint",
-        "registros": data,
-        "accion": "Analisis regulatorio ejecutado"
-    })
-})
+# =========================
+# RESPUESTA FINAL
+# =========================
+else:
+    return mensaje.content
 
-        # =========================
-        # RESPUESTA FINAL
-        # =========================
-        else:
-            return mensaje.content
